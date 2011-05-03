@@ -31,9 +31,14 @@ namespace SpeedHackDetector.Proxy
 
         private ByteQueue m_Buffer;
         private NetworkHandler m_NetworkHander;
-        Thread m_Thread;
+        //Thread m_Thread;
         private Client m_Other;
 
+        private int m_PacketSeed;
+        private bool m_PacketSeeded;
+
+        public bool Seeded { get { return this.m_PacketSeeded; } set { this.m_PacketSeeded = value; } }
+        public int Seed { set { this.m_PacketSeed = value; } }
         public Client Other { set { this.m_Other = value; } }
 
         public IClientEncryption Encryption 
@@ -50,15 +55,16 @@ namespace SpeedHackDetector.Proxy
         }
         public Client(string Name , NetworkHandler hander)
         {
-            m_Thread = new Thread(new ThreadStart(ThreadStartHander));
-            m_Thread.Name = Name;
-            m_Thread.Start();
-            m_Buffer = new ByteQueue();
+            //m_Thread = new Thread(new ThreadStart(ThreadStartHander));
+            //m_Thread.Name = Name;
+            //m_Thread.Start();
+            m_Buffer = new ByteQueue(this);
             this.m_NetworkHander = hander;
         }
 
-        public void ThreadStartHander()
+        public void ThreadStartHander(Object param)
         {
+            String name = (String) param;
             try
             {
                 Byte[] data = new byte[99999];
@@ -71,19 +77,19 @@ namespace SpeedHackDetector.Proxy
                         handeServerConnection(data, _bytesReaded);
                         m_SendingNetworkStream.Write(data, 0, _bytesReaded);
                         Detector.Set();
-                        if (m_Thread.Name.Contains("local"))
+                        if (name.Contains("local"))
                         {
                             lock (m_Buffer)
                             {
                                 DecodeIncomingPacket(m_ListenSocket, ref data, ref _bytesReaded,true);
                             }
-                            ByteQueue temp = new ByteQueue();
+                            ByteQueue temp = new ByteQueue(this);
                             temp.Enqueue(data, 0, _bytesReaded);
                             temp.Socket = m_ListenSocket;
                             m_NetworkHander.OnReceive(temp);
                         }
-                        if(m_Thread.Name.Contains("local"))
-                            Console.WriteLine("(((((((" + _bytesReaded + "))))))))))" + m_Thread.Name + "\n" + print(data, _bytesReaded));
+                        if (name.Contains("local"))
+                            Console.WriteLine("(((((((" + _bytesReaded + "))))))))))" + name + "\n" + print(data, _bytesReaded));
                     }
                     else
                     {

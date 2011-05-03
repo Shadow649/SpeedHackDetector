@@ -16,6 +16,7 @@ using System.Net;
 using System.Threading;
 using System.Collections.Concurrent;
 using SpeedHackDetector.Filter;
+using SpeedHackDetector.Proxy;
 
 namespace SpeedHackDetector.Network
 {
@@ -38,15 +39,16 @@ namespace SpeedHackDetector.Network
 
     public class NetworkHandler
     {
-        private ConcurrentDictionary<IPAddress, FastWalk> m_Ip2AccountStorage;
+        private ConcurrentDictionary<Socket, FastWalk> m_Socket2FastwalkStorage;
         private Listener[] m_Listeners;
         private Queue<ByteQueue> m_Queue;
         private Queue<ByteQueue> m_WorkingQueue;
         private byte[] m_Peek;
+        private FastWalk m_OldFastWalk;
 
         public NetworkHandler()
         {
-            m_Ip2AccountStorage = new ConcurrentDictionary<IPAddress, FastWalk>();
+            m_Socket2FastwalkStorage = new ConcurrentDictionary<Socket, FastWalk>();
             IPEndPoint[] ipep = Listener.EndPoints;
 
             m_Listeners = new Listener[ipep.Length];
@@ -105,10 +107,37 @@ namespace SpeedHackDetector.Network
             {
                 int length = buffer.Length;
 
-                    if (buffer.Length <= 4)
+                if (!ns.Sender.Seeded)
+                {
+                    if (buffer.GetPacketID() == 0xEF)
+                    {
+                        // new packet in client 6.0.5.0 replaces the traditional seed method with a seed packet
+                        // 0xEF = 239 = multicast IP, so this should never appear in a normal seed.  So this is backwards compatible with older clients.
+                        ns.Sender.Seeded = true;
+                    }
+                    else if (buffer.Length >= 4)
+                    {
+                        buffer.Dequeue(m_Peek, 0, 4);
+
+                        int seed = (m_Peek[0] << 24) | (m_Peek[1] << 16) | (m_Peek[2] << 8) | m_Peek[3];
+
+                        if (seed == 0)
+                        {
+                            Console.WriteLine("Login: {0}: Invalid client detected, disconnecting", ns);
+                            ns.Socket.Dispose();
+                            return false;
+                        }
+
+                        ns.Sender.Seed = seed;
+                        ns.Sender.Seeded = true;
+
+                        length = buffer.Length;
+                    }
+                    else
                     {
                         return true;
                     }
+                }
 
                 while (length > 0)
                 {
@@ -197,8 +226,8 @@ namespace SpeedHackDetector.Network
             {
                 case 0x02:
                     return new PacketHandler(0x02, 7, false, onMovementRequest);
-                case 0X80:
-                    return new PacketHandler(0x80, 62, false, onAccountLogin);
+                case 0x91:
+                    return new PacketHandler(0x91, 65, false, onAccountLogin);
                 case 0XEF:
                     return new PacketHandler(0XEF, 21, false, onLoginSeed);
                 case 0x22:
@@ -211,12 +240,17 @@ namespace SpeedHackDetector.Network
 
         public void onMovementRequest(ByteQueue state, PacketReader pvSrc,Socket s)
         {
-            IPAddress ip = ((IPEndPoint)s.RemoteEndPoint).Address;
             Direction dir = (Direction)pvSrc.ReadByte();
             int seq = pvSrc.ReadByte();
             int key = pvSrc.ReadInt32();
-            FastWalk f = this.m_Ip2AccountStorage[ip];
+            FastWalk f = this.m_Socket2FastwalkStorage[s];
             bool speedhack = f.checkFastWalk(dir);
+            if (speedhack)
+            {
+                //LOGGA SU FILE PER ORA STAMPO
+                Console.WriteLine("Account: " + f.Username + "usa speedhack" + "Data: " + DateTime.Now);
+                Console.WriteLine("THREAD ID " + Thread.CurrentThread.ManagedThreadId);
+            }
             if (f.Sequence == 0 && seq != 0) 
             {
                 f.ClearFastwalkStack();
@@ -235,13 +269,21 @@ namespace SpeedHackDetector.Network
             //DO NOTHING
         }
 
+        public void PlayServer(ByteQueue state, PacketReader pvSrc, Socket s)
+        {
+            lock (m_OldFastWalk)
+            {
+
+            }
+        }
+
         public void onAccountLogin(ByteQueue state, PacketReader pvSrc, Socket s)
         {
-            IPAddress ip = ((IPEndPoint)s.RemoteEndPoint).Address;
+            int authID = pvSrc.ReadInt32();
             String username = pvSrc.ReadString( 30 );
             FastWalk fastWalk = new FastWalk(username);
             fastWalk.Sequence = 0;
-            this.m_Ip2AccountStorage.TryAdd(ip, fastWalk);
+            this.m_Socket2FastwalkStorage.TryAdd(s, fastWalk);
 
         }
 
@@ -252,8 +294,7 @@ namespace SpeedHackDetector.Network
 
         public void Resynchronize(ByteQueue state, PacketReader pvSrc, Socket s)
         {
-            IPAddress ip = ((IPEndPoint)s.RemoteEndPoint).Address;
-            FastWalk f = this.m_Ip2AccountStorage[ip];
+            FastWalk f = this.m_Socket2FastwalkStorage[s];
             f.Sequence = 0;
             f.ClearFastwalkStack();
         }

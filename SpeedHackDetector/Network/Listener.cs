@@ -162,25 +162,30 @@ namespace SpeedHackDetector.Network
                 TcpClient m_RemoteSocket = new TcpClient("127.0.0.1", 2593);
                 NetworkStream m_NetworkStreamRemote = m_RemoteSocket.GetStream();
 
-                Client _RemoteClient = new Client("remote" + i,m_Handler)
+                Client _RemoteClient = new Client("remote" + i, m_Handler)
                 {
                     m_SendingNetworkStream = m_NetworkStreamLocal,
                     m_ListenNetworkStream = m_NetworkStreamRemote,
                     m_ListenSocket = m_RemoteSocket.Client
                 };
 
-                Client _LocalClient = new Client("local" + i,m_Handler)
+                Client _LocalClient = new Client("local" + i, m_Handler)
                 {
                     m_SendingNetworkStream = m_NetworkStreamRemote,
                     m_ListenNetworkStream = m_NetworkStreamLocal,
-                    m_ListenSocket =socket
+                    m_ListenSocket = socket
                 };
 
                 _RemoteClient.Other = _LocalClient;
                 _LocalClient.Other = _RemoteClient;
-                //7SocketConnectEventArgs args = new SocketConnectEventArgs(socket);
+                ThreadPool.QueueUserWorkItem(_RemoteClient.ThreadStartHander, "remote" + i);
+                ThreadPool.QueueUserWorkItem(_LocalClient.ThreadStartHander, "local" + i);
+                int a, b;
+                ThreadPool.GetAvailableThreads(out a, out b);
+                Console.WriteLine("Worker " + a + "completion" + b);
+                //7accepted[i]ConnectEventArgs args = new accepted[i]ConnectEventArgs(accepted[i]);
 
-                //EventSink.InvokeSocketConnect(args);
+                //EventSink.Invokeaccepted[i]Connect(args);
 
                 //return args.AllowConnection;
                 i++;
@@ -188,9 +193,7 @@ namespace SpeedHackDetector.Network
             }
             catch (Exception ex)
             {
-                throw new NotImplementedException("GESTISCI L'ECCEZIONE", ex);
-
-                //return false;
+                return false;
             }
         }
 

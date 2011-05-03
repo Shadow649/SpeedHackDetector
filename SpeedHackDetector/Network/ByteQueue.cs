@@ -10,6 +10,7 @@
 using System;
 using System.IO;
 using System.Net.Sockets;
+using SpeedHackDetector.Proxy;
 
 namespace SpeedHackDetector.Network
 {
@@ -18,17 +19,23 @@ namespace SpeedHackDetector.Network
         private int m_Head;
         private int m_Tail;
         private int m_Size;
-        private Socket socket;
+        private Socket m_Socket;
+        private Client m_Sender;
 
         private byte[] m_Buffer;
 
-        public Socket Socket { get { return this.socket; } set { this.socket = value; } }
+
+
+        public Socket Socket { get { return this.m_Socket; } set { this.m_Socket = value; } }
+
+        public Client Sender { get { return this.m_Sender; } }
 
         public int Length { get { return m_Size; } }
 
-        public ByteQueue()
+        public ByteQueue(Client sender)
         {
             m_Buffer = new byte[2048];
+            this.m_Sender = sender;
         }
 
         public void Clear()
