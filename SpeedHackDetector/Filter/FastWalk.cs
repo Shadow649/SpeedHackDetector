@@ -11,74 +11,98 @@ namespace SpeedHackDetector.Filter
     {
         private static TimeSpan m_WalkMount = TimeSpan.FromSeconds(0.2);
         private static TimeSpan m_RunMount = TimeSpan.FromSeconds(0.1);
+        private static TimeSpan m_WalkFoot = TimeSpan.FromSeconds(0.4);
+        private static TimeSpan m_RunFoot = TimeSpan.FromSeconds(0.2);
         private String m_Username;
         private Queue<MovementRecord> m_MoveRecords;
+        int m_InsertOldMomentRecordCountCounter;
         private DateTime m_EndQueue;
-        private int m_FastWalkMaxStepInTick = 3; //Il valore è da vedere se 3 o 4 quando non sono su macchina virtual
+        private int m_FastWalkMaxStepInTick = 4; //Il valore è da vedere se 3 o 4 quando non sono su macchina virtual
         private int m_Sequence;
         private Direction oldDirection;
 
         public int Sequence { get { return this.m_Sequence; } set { this.m_Sequence = value; } }
 
-        public String Username { get { return this.Username; } }
+        public String Username { get { return this.m_Username; } }
 
-        public FastWalk(String username) 
+        public FastWalk(String username)
         {
             this.m_Username = username;
-            this.m_MoveRecords = new Queue<MovementRecord>();
+            this.m_MoveRecords = new Queue<MovementRecord>(6);
             this.m_EndQueue = DateTime.Now;
             this.oldDirection = Direction.Down;
+            this.m_InsertOldMomentRecordCountCounter = 0;
         }
 
-        public bool checkFastWalk(Direction d) {
+        public bool checkFastWalk(Direction d)
+        {
             bool res = false;
-            if( m_MoveRecords == null )
-							m_MoveRecords = new Queue<MovementRecord>( 6 );
+            SkipExpired(m_MoveRecords);
 
-						while( m_MoveRecords.Count > 0 )
-						{
-							MovementRecord r = m_MoveRecords.Peek();
+            
+            checkFastWalk();
 
-							if( r.Expired() )
-								m_MoveRecords.Dequeue();
-							else
-								break;
-						}
+            TimeSpan delay = ComputeMovementSpeed(d);
 
-                        if (m_MoveRecords.Count >= m_FastWalkMaxStepInTick)
-						{
-                            res = true;
-						}
+            DateTime end;
 
-						TimeSpan delay = ComputeMovementSpeed( d );
+            if (m_MoveRecords.Count > 0)
+                end = m_EndQueue + delay;
+            else
+                end = DateTime.Now + delay;
+            m_EndQueue = end;
 
-						DateTime end;
+            m_MoveRecords.Enqueue(MovementRecord.NewInstance(end));
+  
+            return res;
+        }
 
-						if( m_MoveRecords.Count > 0 )
-							end = m_EndQueue + delay;
-						else
-							end = DateTime.Now + delay;
+        private bool checkFastWalk()
+        {
+            if (m_MoveRecords.Count >= m_FastWalkMaxStepInTick)
+            {
+                Console.WriteLine("FAST");
+            }
+            return false;
+        }
 
-						m_MoveRecords.Enqueue( MovementRecord.NewInstance( end ) );
+        private void SkipExpired(Queue<MovementRecord> queue)
+        {
+            while (queue.Count > 0)
+            {
+                MovementRecord r = queue.Peek();
 
-						m_EndQueue = end;
-                        return res;
+                if (r.Expired())
+                    queue.Dequeue();
+                else
+                    break;
+            }
         }
 
         private TimeSpan ComputeMovementSpeed(Direction dir)
         {
             if ((dir & Direction.Mask) != (this.oldDirection & Direction.Mask))
+            {
+                this.oldDirection = dir;
                 return TimeSpan.FromSeconds(0.1);	// We are NOT actually moving (just a direction change)
+            }
 
             bool running = ((dir & Direction.Running) != 0);
-
-            //bool onHorse = (this.Mount != null);
-
-            return (running ? m_RunMount : m_WalkMount);
-
-            //return (running ? m_RunFoot : m_WalkFoot);
+            if (true) //check sul mounted
+            {
+                return (dir & Direction.Running) != 0 ? m_RunMount : m_WalkMount;
+                
+            }
+            else
+            {
+                Console.WriteLine("PIEDI");
+                return (dir & Direction.Running) != 0 ? m_RunFoot : m_WalkFoot;
+               
+            }
         }
-       private class MovementRecord
+
+
+        private class MovementRecord
         {
             public DateTime m_End;
 
@@ -118,12 +142,12 @@ namespace SpeedHackDetector.Filter
             }
         }
 
-       public virtual void ClearFastwalkStack()
-       {
-           if (m_MoveRecords != null && m_MoveRecords.Count > 0)
-               m_MoveRecords.Clear();
+        public virtual void ClearFastwalkStack()
+        {
+            if (m_MoveRecords != null && m_MoveRecords.Count > 0)
+                m_MoveRecords.Clear();
 
-           m_EndQueue = DateTime.Now;
-       }
+            m_EndQueue = DateTime.Now;
+        }
     }
 }
