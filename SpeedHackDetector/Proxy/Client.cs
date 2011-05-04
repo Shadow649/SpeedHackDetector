@@ -88,8 +88,8 @@ namespace SpeedHackDetector.Proxy
                             temp.Socket = m_ListenSocket;
                             m_NetworkHander.OnReceive(temp);
                         }
-                        if (name.Contains("local"))
-                            Console.WriteLine("(((((((" + _bytesReaded + "))))))))))" + name + "\n" + print(data, _bytesReaded));
+                        //if (name.Contains("local"))
+                          //  Console.WriteLine("(((((((" + _bytesReaded + "))))))))))" + name + "\n" + print(data, _bytesReaded));
                     }
                     else
                     {
