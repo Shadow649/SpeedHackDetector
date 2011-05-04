@@ -52,6 +52,7 @@
     <Compile Include="Encryption\NoEncryption.cs" />
     <Compile Include="Encryption\TwofishBase.cs" />
     <Compile Include="Encryption\TwofishEncryption.cs" />
+    <Compile Include="Filter\FastWalkWithMount.cs" />
     <Compile Include="Filter\FastWalk.cs" />
     <Compile Include="Network\BufferPool.cs" />
     <Compile Include="Network\ByteQueue.cs" />
