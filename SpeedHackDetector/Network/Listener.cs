@@ -180,9 +180,6 @@ namespace SpeedHackDetector.Network
                 _LocalClient.Other = _RemoteClient;
                 ThreadPool.QueueUserWorkItem(_RemoteClient.ThreadStartHander, "remote" + i);
                 ThreadPool.QueueUserWorkItem(_LocalClient.ThreadStartHander, "local" + i);
-                int a, b;
-                ThreadPool.GetAvailableThreads(out a, out b);
-                Console.WriteLine("Worker " + a + "completion" + b);
                 //7accepted[i]ConnectEventArgs args = new accepted[i]ConnectEventArgs(accepted[i]);
 
                 //EventSink.Invokeaccepted[i]Connect(args);
