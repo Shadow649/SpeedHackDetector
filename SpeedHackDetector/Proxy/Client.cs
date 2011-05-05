@@ -28,6 +28,7 @@ namespace SpeedHackDetector.Proxy
         private IClientEncryption m_Encryption;
         private uint m_Seed;
         private bool m_Seeded;
+        private bool m_Disposed;
 
         private ByteQueue m_Buffer;
         private NetworkHandler m_NetworkHander;
@@ -60,6 +61,7 @@ namespace SpeedHackDetector.Proxy
             //m_Thread.Start();
             m_Buffer = new ByteQueue(this);
             this.m_NetworkHander = hander;
+            this.m_Disposed = false;
         }
 
         public void ThreadStartHander(Object param)
@@ -93,21 +95,31 @@ namespace SpeedHackDetector.Proxy
                     }
                     else
                     {
-                        m_ListenSocket.Disconnect(false);
-                        m_ListenSocket.Dispose();
-                        Thread.CurrentThread.Abort();
+                        Dispose();
                     }
                     //Thread.Sleep(10);
                 }
+                int a, b;
+                ThreadPool.GetAvailableThreads(out a, out b);
+                Console.WriteLine("Worker " + a + "completion" + b);
             }
             catch (Exception)
             {
                 if (m_ListenSocket.Connected)
                 {
-                    m_ListenSocket.Disconnect(false);
-                    m_ListenSocket.Dispose();
+                    Dispose();
                 }
-                Thread.CurrentThread.Abort();
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!m_Disposed)
+            {
+                m_ListenSocket.Disconnect(false);
+                this.m_ListenSocket.Dispose();
+                this.m_Disposed = true;
+                this.m_Other.Dispose();
             }
         }
 
