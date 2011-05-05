@@ -231,6 +231,8 @@ namespace SpeedHackDetector.Network
                     return new PacketHandler(0XEF, 21, false, onLoginSeed);
                 case 0x22:
                     return new PacketHandler(0x22, 3, false, Resynchronize);
+                case 0xD1:
+                    return new PacketHandler(0xD1, 2, false, onLogoutReq);
                 default:
                     return null;
             }
@@ -278,9 +280,11 @@ namespace SpeedHackDetector.Network
 
         }
 
-        public void onAccountLogedOut(ByteQueue state, PacketReader pvSrc, Socket s)
+        public void onLogoutReq(ByteQueue state, PacketReader pvSrc, Socket s)
         {
-
+            byte [] toSend = { (byte) 0x01};
+            s.Send(toSend);
+            state.Sender.Dispose();
         }
 
         public void Resynchronize(ByteQueue state, PacketReader pvSrc, Socket s)
