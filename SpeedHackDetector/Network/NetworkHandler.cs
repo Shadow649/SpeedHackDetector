@@ -39,16 +39,15 @@ namespace SpeedHackDetector.Network
 
     public class NetworkHandler
     {
-        private ConcurrentDictionary<Socket, FastWalk> m_Socket2FastwalkStorage;
+        private ConcurrentDictionary<Socket, FastWalkBeta2> m_Socket2FastwalkStorage;
         private Listener[] m_Listeners;
         private Queue<ByteQueue> m_Queue;
         private Queue<ByteQueue> m_WorkingQueue;
         private byte[] m_Peek;
-        private FastWalk m_OldFastWalk;
 
         public NetworkHandler()
         {
-            m_Socket2FastwalkStorage = new ConcurrentDictionary<Socket, FastWalk>();
+            m_Socket2FastwalkStorage = new ConcurrentDictionary<Socket, FastWalkBeta2>();
             IPEndPoint[] ipep = Listener.EndPoints;
 
             m_Listeners = new Listener[ipep.Length];
@@ -243,7 +242,7 @@ namespace SpeedHackDetector.Network
             Direction dir = (Direction)pvSrc.ReadByte();
             int seq = pvSrc.ReadByte();
             int key = pvSrc.ReadInt32();
-            FastWalk f = this.m_Socket2FastwalkStorage[s];
+            FastWalkBeta2 f = this.m_Socket2FastwalkStorage[s];
             bool speedhack = f.checkFastWalk(dir);
             if (speedhack)
             {
@@ -269,19 +268,11 @@ namespace SpeedHackDetector.Network
             //DO NOTHING
         }
 
-        public void PlayServer(ByteQueue state, PacketReader pvSrc, Socket s)
-        {
-            lock (m_OldFastWalk)
-            {
-
-            }
-        }
-
         public void onAccountLogin(ByteQueue state, PacketReader pvSrc, Socket s)
         {
             int authID = pvSrc.ReadInt32();
             String username = pvSrc.ReadString( 30 );
-            FastWalk fastWalk = new FastWalk(username);
+            FastWalkBeta2 fastWalk = new FastWalkBeta2(username);
             fastWalk.Sequence = 0;
             this.m_Socket2FastwalkStorage.TryAdd(s, fastWalk);
 
@@ -294,7 +285,7 @@ namespace SpeedHackDetector.Network
 
         public void Resynchronize(ByteQueue state, PacketReader pvSrc, Socket s)
         {
-            FastWalk f = this.m_Socket2FastwalkStorage[s];
+            FastWalkBeta2 f = this.m_Socket2FastwalkStorage[s];
             f.Sequence = 0;
             f.ClearFastwalkStack();
         }
