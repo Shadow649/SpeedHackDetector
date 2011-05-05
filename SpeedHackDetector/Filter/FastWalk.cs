@@ -15,7 +15,6 @@ namespace SpeedHackDetector.Filter
         private static TimeSpan m_RunFoot = TimeSpan.FromSeconds(0.2);
         private String m_Username;
         private Queue<MovementRecord> m_MoveRecords;
-        int m_InsertOldMomentRecordCountCounter;
         private DateTime m_EndQueue;
         private int m_FastWalkMaxStepInTick = 4; //Il valore è da vedere se 3 o 4 quando non sono su macchina virtual
         private int m_Sequence;
@@ -31,7 +30,6 @@ namespace SpeedHackDetector.Filter
             this.m_MoveRecords = new Queue<MovementRecord>(6);
             this.m_EndQueue = DateTime.Now;
             this.oldDirection = Direction.Down;
-            this.m_InsertOldMomentRecordCountCounter = 0;
         }
 
         public bool checkFastWalk(Direction d)
