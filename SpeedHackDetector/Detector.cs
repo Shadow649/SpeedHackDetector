@@ -34,10 +34,10 @@ namespace SpeedHackDetector
                 Console.WriteLine("Core: Optimizing for {0} {2}processor{1}", m_ProcessorCount, m_ProcessorCount == 1 ? "" : "s", Is64Bit ? "64-bit " : "");
 
             SocketPool.Create();
-            NetworkHandler networkHandler = new NetworkHandler();
+            PacketskHandler packetsHandler = new PacketskHandler();
             while (m_Signal.WaitOne())
             {
-                networkHandler.Slice();
+                
             }
         }
     }

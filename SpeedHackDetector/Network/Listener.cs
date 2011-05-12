@@ -14,6 +14,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using SpeedHackDetector.Proxy;
+using System.Configuration;
+using System.Collections.Specialized;
 
 namespace SpeedHackDetector.Network
 {
@@ -26,7 +28,7 @@ namespace SpeedHackDetector.Network
         private object m_AcceptedSyncRoot;
 
         private AsyncCallback m_OnAccept;
-        private NetworkHandler m_Handler;
+        private PacketskHandler m_Handler;
 
         private static Socket[] m_EmptySockets = new Socket[0];
 
@@ -40,7 +42,7 @@ namespace SpeedHackDetector.Network
             set { m_EndPoints = value; }
         }
 
-        public Listener(IPEndPoint ipep, NetworkHandler handler)
+        public Listener(IPEndPoint ipep, PacketskHandler handler)
         {
             m_Accepted = new Queue<Socket>();
             m_AcceptedSyncRoot = ((ICollection)m_Accepted).SyncRoot;
@@ -159,17 +161,18 @@ namespace SpeedHackDetector.Network
             try
             {
                 NetworkStream m_NetworkStreamLocal = new NetworkStream(socket);
-                TcpClient m_RemoteSocket = new TcpClient("127.0.0.1", 2593);
+
+                TcpClient m_RemoteSocket = new TcpClient(ConfigurationManager.AppSettings.Get("serverIp"), Int32.Parse(ConfigurationManager.AppSettings.Get("serverPort")));
                 NetworkStream m_NetworkStreamRemote = m_RemoteSocket.GetStream();
 
-                Client _RemoteClient = new Client("remote" + i, m_Handler)
+                Client _RemoteClient = new RemoteClient("remote" + i, m_Handler)
                 {
                     m_SendingNetworkStream = m_NetworkStreamLocal,
                     m_ListenNetworkStream = m_NetworkStreamRemote,
                     m_ListenSocket = m_RemoteSocket.Client
                 };
 
-                Client _LocalClient = new Client("local" + i, m_Handler)
+                Client _LocalClient = new LocalClient("local" + i, m_Handler)
                 {
                     m_SendingNetworkStream = m_NetworkStreamRemote,
                     m_ListenNetworkStream = m_NetworkStreamLocal,
@@ -188,7 +191,7 @@ namespace SpeedHackDetector.Network
                 i++;
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }

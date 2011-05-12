@@ -11,8 +11,8 @@ namespace SpeedHackDetector.Filter
     {
         private static TimeSpan m_WalkMount = TimeSpan.FromSeconds(0.2);
         private static TimeSpan m_RunMount = TimeSpan.FromSeconds(0.1);
-        private static TimeSpan m_WalkFoot = TimeSpan.FromSeconds(0.4);
-        private static TimeSpan m_RunFoot = TimeSpan.FromSeconds(0.2);
+        //private static TimeSpan m_WalkFoot = TimeSpan.FromSeconds(0.4);
+        //private static TimeSpan m_RunFoot = TimeSpan.FromSeconds(0.2);
         private String m_Username;
         private Queue<MovementRecord> m_MoveRecords;
         private DateTime m_EndQueue;
@@ -38,7 +38,7 @@ namespace SpeedHackDetector.Filter
             SkipExpired(m_MoveRecords);
 
             
-            checkFastWalk();
+            res = checkFastWalk();
 
             TimeSpan delay = ComputeMovementSpeed(d);
 
@@ -59,7 +59,7 @@ namespace SpeedHackDetector.Filter
         {
             if (m_MoveRecords.Count >= m_FastWalkMaxStepInTick)
             {
-                Console.WriteLine("FAST");
+                return true;
             }
             return false;
         }
@@ -90,12 +90,6 @@ namespace SpeedHackDetector.Filter
             {
                 return (dir & Direction.Running) != 0 ? m_RunMount : m_WalkMount;
                 
-            }
-            else
-            {
-                Console.WriteLine("PIEDI");
-                return (dir & Direction.Running) != 0 ? m_RunFoot : m_WalkFoot;
-               
             }
         }
 
