@@ -133,7 +133,7 @@ namespace SpeedHackDetector.Network
 
             if (accepted != null)
             {
-                if (VerifySocket(accepted))
+                if (handleSocket(accepted))
                 {
                     Enqueue(accepted);
                 }
@@ -156,7 +156,7 @@ namespace SpeedHackDetector.Network
             }
         }
 
-        private bool VerifySocket(Socket socket)
+        private bool handleSocket(Socket socket)
         {
             try
             {
@@ -183,11 +183,6 @@ namespace SpeedHackDetector.Network
                 _LocalClient.Other = _RemoteClient;
                 ThreadPool.QueueUserWorkItem(_RemoteClient.ThreadStartHander, "remote" + i);
                 ThreadPool.QueueUserWorkItem(_LocalClient.ThreadStartHander, "local" + i);
-                //7accepted[i]ConnectEventArgs args = new accepted[i]ConnectEventArgs(accepted[i]);
-
-                //EventSink.Invokeaccepted[i]Connect(args);
-
-                //return args.AllowConnection;
                 i++;
                 return true;
             }
@@ -228,22 +223,6 @@ namespace SpeedHackDetector.Network
             {
                 throw new NotImplementedException("GESTISCI L'ECCEZIONE",ex);
             }
-        }
-
-        public Socket[] Slice()
-        {
-            Socket[] array;
-
-            lock (m_AcceptedSyncRoot)
-            {
-                if (m_Accepted.Count == 0)
-                    return m_EmptySockets;
-
-                array = m_Accepted.ToArray();
-                m_Accepted.Clear();
-            }
-
-            return array;
         }
 
         public void Dispose()

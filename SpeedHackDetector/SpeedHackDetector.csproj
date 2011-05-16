@@ -78,6 +78,8 @@
     <Compile Include="Filter\FastWalkBeta2.cs" />
     <Compile Include="Filter\FastWalkWithMount.cs" />
     <Compile Include="Filter\FastWalk.cs" />
+    <Compile Include="Filter\Filter.cs" />
+    <Compile Include="Filter\FilterManager.cs" />
     <Compile Include="Network\BufferPool.cs" />
     <Compile Include="Network\ByteQueue.cs" />
     <Compile Include="Network\PacketHandler.cs" />

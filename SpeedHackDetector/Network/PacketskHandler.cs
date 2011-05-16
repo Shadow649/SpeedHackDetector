@@ -39,13 +39,14 @@ namespace SpeedHackDetector.Network
 
     public class PacketskHandler
     {
-        private ConcurrentDictionary<Socket, FastWalk> m_Socket2FastwalkStorage;
         private Listener[] m_Listeners;
         private byte[] m_Peek;
+        private FilterManager<Direction> m_DirectionFilterManager;
 
         public PacketskHandler()
         {
-            m_Socket2FastwalkStorage = new ConcurrentDictionary<Socket, FastWalk>();
+            this.m_DirectionFilterManager = new FilterManager<Direction>();
+
             IPEndPoint[] ipep = Listener.EndPoints;
 
             m_Listeners = new Listener[ipep.Length];
@@ -96,8 +97,8 @@ namespace SpeedHackDetector.Network
             Direction dir = (Direction)pvSrc.ReadByte();
             int seq = pvSrc.ReadByte();
             int key = pvSrc.ReadInt32();
-            FastWalk f = this.m_Socket2FastwalkStorage[s];
-            bool speedhack = f.checkFastWalk(dir);
+            Filter<Direction> f = m_DirectionFilterManager.get(s);
+            bool speedhack = f.DoFilter(dir);
             if (speedhack)
             {
                 //LOGGA SU FILE PER ORA STAMPO
@@ -106,7 +107,7 @@ namespace SpeedHackDetector.Network
             }
             if (f.Sequence == 0 && seq != 0) 
             {
-                f.ClearFastwalkStack();
+                f.Reset();
             }
             ++seq;
 
@@ -128,7 +129,7 @@ namespace SpeedHackDetector.Network
             String username = pvSrc.ReadString( 30 );
             FastWalk fastWalk = new FastWalk(username);
             fastWalk.Sequence = 0;
-            this.m_Socket2FastwalkStorage.TryAdd(s, fastWalk);
+            this.m_DirectionFilterManager.add(s, fastWalk);
 
         }
 
@@ -141,9 +142,9 @@ namespace SpeedHackDetector.Network
 
         public void Resynchronize(ByteQueue state, PacketReader pvSrc, Socket s)
         {
-            FastWalk f = this.m_Socket2FastwalkStorage[s];
+            Filter<Direction> f = m_DirectionFilterManager.get(s);
             f.Sequence = 0;
-            f.ClearFastwalkStack();
+            f.Reset();
         }
 
 
