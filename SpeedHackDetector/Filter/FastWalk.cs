@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace SpeedHackDetector.Filter
 {
-    public class FastWalk
+    public class FastWalk : Filter<Direction>
     {
         private static TimeSpan m_WalkMount = TimeSpan.FromSeconds(0.2);
         private static TimeSpan m_RunMount = TimeSpan.FromSeconds(0.1);
@@ -32,7 +32,7 @@ namespace SpeedHackDetector.Filter
             this.oldDirection = Direction.Down;
         }
 
-        public bool checkFastWalk(Direction d)
+        public bool DoFilter(Direction d)
         {
             bool res = false;
             SkipExpired(m_MoveRecords);
@@ -134,7 +134,7 @@ namespace SpeedHackDetector.Filter
             }
         }
 
-        public virtual void ClearFastwalkStack()
+        public void Reset()
         {
             if (m_MoveRecords != null && m_MoveRecords.Count > 0)
                 m_MoveRecords.Clear();
