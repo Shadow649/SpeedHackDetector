@@ -184,6 +184,8 @@ namespace SpeedHackDetector.Network
                 ThreadPool.QueueUserWorkItem(_RemoteClient.ThreadStartHander, "remote" + i);
                 ThreadPool.QueueUserWorkItem(_LocalClient.ThreadStartHander, "local" + i);
                 i++;
+                ClientIdentifier client = new ClientIdentifier(m_RemoteSocket.Client,socket);
+                ClientStorage.GetInstance().AddClient(client);
                 return true;
             }
             catch (Exception)

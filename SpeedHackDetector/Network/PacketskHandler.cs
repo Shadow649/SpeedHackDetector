@@ -92,12 +92,15 @@ namespace SpeedHackDetector.Network
 
         }
 
+        public FilterManager<Direction> DirectionFilter { get { return this.m_DirectionFilterManager; } }
+
         public void onMovementRequest(ByteQueue state, PacketReader pvSrc,Socket s)
         {
             Direction dir = (Direction)pvSrc.ReadByte();
             int seq = pvSrc.ReadByte();
             int key = pvSrc.ReadInt32();
-            Filter<Direction> f = m_DirectionFilterManager.get(s);
+            ClientIdentifier client = ClientStorage.GetInstance().GetClient(s);
+            Filter<Direction> f = m_DirectionFilterManager.get(client);
             bool speedhack = f.DoFilter(dir);
             if (speedhack)
             {
@@ -129,7 +132,9 @@ namespace SpeedHackDetector.Network
             String username = pvSrc.ReadString( 30 );
             FastWalk fastWalk = new FastWalk(username);
             fastWalk.Sequence = 0;
-            this.m_DirectionFilterManager.add(s, fastWalk);
+            ClientIdentifier client = ClientStorage.GetInstance().GetClient(s);
+            client.Username = username;
+            this.m_DirectionFilterManager.add(client, fastWalk);
 
         }
 
@@ -142,7 +147,8 @@ namespace SpeedHackDetector.Network
 
         public void Resynchronize(ByteQueue state, PacketReader pvSrc, Socket s)
         {
-            Filter<Direction> f = m_DirectionFilterManager.get(s);
+            ClientIdentifier client = ClientStorage.GetInstance().GetClient(s);
+            Filter<Direction> f = m_DirectionFilterManager.get(client);
             f.Sequence = 0;
             f.Reset();
         }
