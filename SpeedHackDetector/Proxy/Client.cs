@@ -30,7 +30,7 @@ namespace SpeedHackDetector.Proxy
         static System.IO.StreamWriter file = new System.IO.StreamWriter("f:\\test.txt", true);
 
         protected ByteQueue m_Buffer;
-        protected PacketskHandler m_NetworkHander;
+        protected PacketskHandler m_PacketsHander;
 
         private Client m_Other;
 
@@ -60,7 +60,7 @@ namespace SpeedHackDetector.Proxy
             //m_Thread.Name = Name;
             //m_Thread.Start();
             m_Buffer = new ByteQueue(this);
-            this.m_NetworkHander = hander;
+            this.m_PacketsHander = hander;
             this.m_Disposed = false;
         }
 
@@ -79,7 +79,7 @@ namespace SpeedHackDetector.Proxy
                         m_SendingNetworkStream.Write(data, 0, _bytesReaded);
                         Detector.Set();
                         doAction(_bytesReaded);
-                        Console.WriteLine("(((((((" + _bytesReaded +"))))))))))" + name + "\n" + print(data, _bytesReaded));
+                        //Console.WriteLine("(((((((" + _bytesReaded +"))))))))))" + name + "\n" + print(data, _bytesReaded));
                     }
                     else
                     {
@@ -106,6 +106,8 @@ namespace SpeedHackDetector.Proxy
         {
             if (!m_Disposed)
             {
+                ClientIdentifier client = ClientStorage.GetInstance().RemoveClient(m_ListenSocket);
+                this.m_PacketsHander.DirectionFilter.remove(client);
                 m_ListenSocket.Disconnect(false);
                 this.m_ListenSocket.Dispose();
                 this.m_Disposed = true;

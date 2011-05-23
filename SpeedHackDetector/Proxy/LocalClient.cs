@@ -360,7 +360,7 @@ namespace SpeedHackDetector.Proxy
                 {
                     int packetID = buffer.GetPacketID();
 
-                    PacketHandler handler = m_NetworkHander.GetHandler(packetID);
+                    PacketHandler handler = m_PacketsHander.GetHandler(packetID);
 
                     if (handler == null)
                     {

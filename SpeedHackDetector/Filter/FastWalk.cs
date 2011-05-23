@@ -16,7 +16,7 @@ namespace SpeedHackDetector.Filter
         private String m_Username;
         private Queue<MovementRecord> m_MoveRecords;
         private DateTime m_EndQueue;
-        private int m_FastWalkMaxStepInTick = 4; //Il valore è da vedere se 3 o 4 quando non sono su macchina virtual
+        private int m_FastWalkMaxStepInTick = 3; //Il valore è da vedere se 3 o 4 quando non sono su macchina virtual
         private int m_Sequence;
         private Direction oldDirection;
 
