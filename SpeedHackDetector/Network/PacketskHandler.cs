@@ -8,6 +8,7 @@
  ***************************************************************************/
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,8 @@ using System.Threading;
 using System.Collections.Concurrent;
 using SpeedHackDetector.Filter;
 using SpeedHackDetector.Proxy;
+using System.Diagnostics;
+
 
 namespace SpeedHackDetector.Network
 {
@@ -105,8 +108,15 @@ namespace SpeedHackDetector.Network
             if (speedhack)
             {
                 //LOGGA SU FILE PER ORA STAMPO
-                Console.WriteLine("Account: " + f.Username + "usa speedhack" + "Data: " + DateTime.Now);
-                Console.WriteLine("THREAD ID " + Thread.CurrentThread.ManagedThreadId);
+                String baseDirecotry = Directory.GetCurrentDirectory();
+                AppendPath(ref baseDirecotry, "Logs");
+                AppendPath(ref baseDirecotry, "SpeedHack");
+                baseDirecotry = Path.Combine(baseDirecotry, String.Format("{0}.log", f.Username));
+                using (StreamWriter sw = new StreamWriter(baseDirecotry, true))
+                    sw.WriteLine("Account: " + f.Username + " usa speedhack " + " Data: " + DateTime.Now);
+
+                //Console.WriteLine("Account: " + f.Username + "usa speedhack" + "Data: " + DateTime.Now);
+                //Console.WriteLine("THREAD ID " + Thread.CurrentThread.ManagedThreadId);
             }
             if (f.Sequence == 0 && seq != 0) 
             {
@@ -119,6 +129,14 @@ namespace SpeedHackDetector.Network
 
             f.Sequence = seq;
 
+        }
+
+        private void AppendPath(ref string path, string toAppend)
+        {
+            path = Path.Combine(path, toAppend);
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
         }
 
         public void onLoginSeed(ByteQueue state, PacketReader pvSrc, Socket s)
