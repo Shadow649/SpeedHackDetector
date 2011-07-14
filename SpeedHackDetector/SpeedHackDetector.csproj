@@ -84,6 +84,7 @@
     <Compile Include="Network\ByteQueue.cs" />
     <Compile Include="Network\ClientIdentifier.cs" />
     <Compile Include="Network\ClientStorage.cs" />
+    <Compile Include="Network\IpStorage.cs" />
     <Compile Include="Network\PacketHandler.cs" />
     <Compile Include="Network\PacketReader.cs" />
     <Compile Include="Network\Listener.cs" />
