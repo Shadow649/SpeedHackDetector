@@ -188,8 +188,9 @@ namespace SpeedHackDetector.Network
                 ClientStorage.GetInstance().AddClient(client);
                 return true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e.Message);
                 return false;
             }
         }
