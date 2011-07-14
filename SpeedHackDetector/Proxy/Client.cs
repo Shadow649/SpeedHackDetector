@@ -27,7 +27,6 @@ namespace SpeedHackDetector.Proxy
 
         protected IClientEncryption m_Encryption;
         protected bool m_Disposed;
-        static System.IO.StreamWriter file = new System.IO.StreamWriter("f:\\test.txt", true);
 
         protected ByteQueue m_Buffer;
         protected PacketskHandler m_PacketsHander;
@@ -135,23 +134,6 @@ namespace SpeedHackDetector.Proxy
                 res += data[i].ToString();
             }
             return res;
-        }
-        private static class Logger
-        {
-            public static void log(String name, byte[] data, int _bytesReaded)
-            {
-                
-                file.WriteLine("(((((((" + DateTime.Now.Minute + " " + DateTime.Now.Second + " " + DateTime.Now.Millisecond + "))))))))))" + name + "\n" + print(data, _bytesReaded));
-            }
-            private static string print(byte[] data, int _bytesReaded)
-            {
-                String res = "";
-                for (int i = 0; i < _bytesReaded; i++)
-                {
-                    res += data[i].ToString();
-                }
-                return res;
-            }
         }
 
     }
