@@ -14,21 +14,19 @@ namespace SpeedHackDetector.Network
 
         public IpStorage()
         {
+            this.m_Ip2Account = new ConcurrentDictionary<IPAddress, List<String>>();
             System.Timers.Timer m_Timer = new System.Timers.Timer();
             m_Timer.Elapsed += new System.Timers.ElapsedEventHandler(checkAccount);
-            m_Timer.Interval = 360000;
+            m_Timer.Interval = 1000;
             m_Timer.Enabled = true;
             m_Timer.AutoReset = true;
         }
 
-        protected ConcurrentDictionary<IPAddress, List<String>> Ip2Account {get { return this.m_Ip2Account; } }
-
-        public void checkAccount(object sender, System.Timers.ElapsedEventArgs e)
+        private void checkAccount(object sender, System.Timers.ElapsedEventArgs e)
         {
-            IpStorage obj = sender as IpStorage;
-            foreach(IPAddress key in obj.Ip2Account.Keys) 
+            foreach(IPAddress key in this.m_Ip2Account.Keys) 
             {
-                List<String> acc = obj.Ip2Account[key];
+                List<String> acc = this.m_Ip2Account[key];
                 if (acc.Count > 1)
                 {
                     Warning(acc,key);
@@ -50,6 +48,7 @@ namespace SpeedHackDetector.Network
                 accounts = m_Ip2Account[addr];
             }
             accounts.Add(username);
+            this.m_Ip2Account.TryAdd(addr, accounts);
         }
 
         public void Warning(List<String> usernames, IPAddress addr)
@@ -57,7 +56,7 @@ namespace SpeedHackDetector.Network
             String baseDirecotry = Directory.GetCurrentDirectory();
             AppendPath(ref baseDirecotry, "Logs");
             AppendPath(ref baseDirecotry, "IpLogs");
-            String doppi = Path.Combine(baseDirecotry, "sospettidoppi.logs");
+            String doppi = Path.Combine(baseDirecotry, "sospettidoppi.log");
             String accounts = getUsernameFromList(usernames);
             using (StreamWriter sw = new StreamWriter(doppi, true))
                 sw.WriteLine("Accounts: " + accounts + " ha loggato con ip " + addr.ToString() + " in Data: " + DateTime.Now);
@@ -65,7 +64,12 @@ namespace SpeedHackDetector.Network
 
         private string getUsernameFromList(IEnumerable<String> usernames)
         {
-            return "" + usernames.First<String>() +"," + getUsernameFromList(usernames.Skip<String>(1)); 
+            String result = "";
+            foreach (String username in usernames)
+            {
+                result += username +",";
+            }
+            return result;
         }
 
 
@@ -75,7 +79,7 @@ namespace SpeedHackDetector.Network
             String baseDirecotry = Directory.GetCurrentDirectory();
             AppendPath(ref baseDirecotry, "Logs");
             AppendPath(ref baseDirecotry, "IpLogs");
-            String generalLog = Path.Combine(baseDirecotry, "ip.logs");
+            String generalLog = Path.Combine(baseDirecotry, "ip.log");
             String userLog = Path.Combine(baseDirecotry, String.Format("{0}.log", username));
             using (StreamWriter sw = new StreamWriter(generalLog, true))
                 sw.WriteLine("Account: " + username + " ha loggato con ip " + addr.ToString() + " in Data: " + DateTime.Now);

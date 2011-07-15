@@ -45,10 +45,13 @@ namespace SpeedHackDetector.Network
         private Listener[] m_Listeners;
         private byte[] m_Peek;
         private FilterManager<Direction> m_DirectionFilterManager;
+        private IpStorage m_IpStorage;
 
         public PacketskHandler()
         {
             this.m_DirectionFilterManager = new FilterManager<Direction>();
+
+            this.m_IpStorage = new IpStorage();
 
             IPEndPoint[] ipep = Listener.EndPoints;
 
@@ -88,7 +91,7 @@ namespace SpeedHackDetector.Network
                 case 0x22:
                     return new PacketHandler(0x22, 3, false, Resynchronize);
                 case 0xD1:
-                    return new PacketHandler(0xD1, 2, false, onLogoutReq);
+                    return new PacketHandler(0x01, 2, false, onLogoutReq);
                 default:
                     return null;
             }
@@ -150,6 +153,8 @@ namespace SpeedHackDetector.Network
             String username = pvSrc.ReadString( 30 );
             FastWalk fastWalk = new FastWalk(username);
             fastWalk.Sequence = 0;
+            IPEndPoint endPoint = s.RemoteEndPoint as IPEndPoint;
+            this.m_IpStorage.Add(username, endPoint.Address);
             ClientIdentifier client = ClientStorage.GetInstance().GetClient(s);
             client.Username = username;
             this.m_DirectionFilterManager.add(client, fastWalk);
