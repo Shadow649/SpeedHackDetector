@@ -33,7 +33,7 @@ namespace SpeedHackDetector.Network
         private static Socket[] m_EmptySockets = new Socket[0];
 
         private static IPEndPoint[] m_EndPoints = new IPEndPoint[] {
-			new IPEndPoint( IPAddress.Any, 2598 )
+			new IPEndPoint( IPAddress.Any, Int32.Parse(ConfigurationManager.AppSettings.Get("proxyPort")) )
 		};
 
         public static IPEndPoint[] EndPoints
@@ -162,7 +162,7 @@ namespace SpeedHackDetector.Network
             {
                 NetworkStream m_NetworkStreamLocal = new NetworkStream(socket);
 
-                TcpClient m_RemoteSocket = new TcpClient(ConfigurationManager.AppSettings.Get("serverIp"), Int32.Parse(ConfigurationManager.AppSettings.Get("serverPort")));
+                TcpClient m_RemoteSocket = new TcpClient(ConfigurationManager.AppSettings.Get("ultimaIp"), Int32.Parse(ConfigurationManager.AppSettings.Get("ultimaPort")));
                 NetworkStream m_NetworkStreamRemote = m_RemoteSocket.GetStream();
 
                 Client _RemoteClient = new RemoteClient("remote" + i, m_Handler)

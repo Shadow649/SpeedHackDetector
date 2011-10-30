@@ -16,6 +16,7 @@ using System.Net;
 using System.Threading;
 using SpeedHackDetector.Network;
 using SpeedHackDetector.Encryption;
+using System.Configuration;
 
 namespace SpeedHackDetector.Proxy
 {
@@ -32,6 +33,7 @@ namespace SpeedHackDetector.Proxy
         protected PacketskHandler m_PacketsHander;
 
         private Client m_Other;
+        private String[] proxyIp;
 
         private int m_PacketSeed;
         private bool m_PacketSeeded;
@@ -55,6 +57,7 @@ namespace SpeedHackDetector.Proxy
         }
         public Client(string Name , PacketskHandler hander)
         {
+            proxyIp = ConfigurationManager.AppSettings.Get("proxyIp").Split('.');
             //m_Thread = new Thread(new ThreadStart(ThreadStartHander));
             //m_Thread.Name = Name;
             //m_Thread.Start();
@@ -118,12 +121,36 @@ namespace SpeedHackDetector.Proxy
         {
             if (_bytesReaded == 11 && data[0] == 140)
             {
-                data[1] = 127;
-                data[2] = 0;
-                data[3] = 0;
-                data[4] = 1;
-                data[6] = 38;
+
+                data[1] = Byte.Parse(proxyIp[0]);
+                data[2] = Byte.Parse(proxyIp[1]);
+                data[3] = Byte.Parse(proxyIp[2]);
+                data[4] = Byte.Parse(proxyIp[3]);
+                String portInByte = get16BitRepresentation(ConfigurationManager.AppSettings.Get("proxyPort"));
+
+                Byte port1 = Convert.ToByte(portInByte.Substring(0, 8),2);
+                Byte port2 = Convert.ToByte(portInByte.Substring(8, 8),2);
+                data[5] = port1;
+                data[6] = port2;
             }
+        }
+
+        private string get16BitRepresentation(String port)
+        {
+            List<char> appList = new List<char>();
+            String converted = Convert.ToString(Int32.Parse(port), 2);
+            char[] convertedArray = converted.ToArray<char>();
+            if (convertedArray.Length < 16)
+            {
+                char[] _16BitArray = new char[16 - convertedArray.Length];
+                for (int i = 0; i < 16 - convertedArray.Length; i++)
+                {
+                    _16BitArray[i] = '0';
+                }
+                appList.AddRange(_16BitArray);
+                appList.AddRange(convertedArray);
+            }
+            return new String(appList.ToArray());
         }
 
         private string print(byte[] data, int _bytesReaded)
