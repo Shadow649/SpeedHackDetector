@@ -92,6 +92,8 @@ namespace SpeedHackDetector.Network
                     return new PacketHandler(0x22, 3, false, Resynchronize);
                 case 0xD1:
                     return new PacketHandler(0x01, 2, false, onLogoutReq);
+                case 0x5D:
+                    return new PacketHandler(0x5D, 73, false, onPreLogin);
                 default:
                     return null;
             }
@@ -99,6 +101,8 @@ namespace SpeedHackDetector.Network
         }
 
         public FilterManager<Direction> DirectionFilter { get { return this.m_DirectionFilterManager; } }
+
+        public IpStorage IpStorage { get { return this.m_IpStorage; } }
 
         public void onMovementRequest(ByteQueue state, PacketReader pvSrc,Socket s)
         {
@@ -158,6 +162,16 @@ namespace SpeedHackDetector.Network
             ClientIdentifier client = ClientStorage.GetInstance().GetClient(s);
             client.Username = username;
             this.m_DirectionFilterManager.add(client, fastWalk);
+
+        }
+
+        public void onPreLogin(ByteQueue state, PacketReader pvSrc, Socket s)
+        {
+            int authID = pvSrc.ReadInt32();
+            String username = pvSrc.ReadString(30);
+            ClientIdentifier client = ClientStorage.GetInstance().GetClient(s);
+            Filter<Direction> f = m_DirectionFilterManager.get(client);
+            f.start();
 
         }
 

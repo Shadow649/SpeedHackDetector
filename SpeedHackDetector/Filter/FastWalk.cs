@@ -19,7 +19,8 @@ namespace SpeedHackDetector.Filter
         private int m_FastWalkMaxStepInTick = 3; //Il valore è da vedere se 3 o 4 quando non sono su macchina virtual
         private int m_Sequence;
         private Direction oldDirection;
-
+        private bool m_Started;
+        private System.Timers.Timer m_Timer;
         public int Sequence { get { return this.m_Sequence; } set { this.m_Sequence = value; } }
 
         public String Username { get { return this.m_Username; } }
@@ -32,26 +33,46 @@ namespace SpeedHackDetector.Filter
             this.oldDirection = Direction.Down;
         }
 
+        public void start()
+        {
+            m_Timer = new System.Timers.Timer();
+            m_Timer.Elapsed += new System.Timers.ElapsedEventHandler(setStarted);
+            m_Timer.Interval = 5000;
+            m_Timer.Enabled = true;
+            m_Timer.AutoReset = false;
+        }
+
+        private void setStarted(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            this.m_Started = true;
+            m_Timer.Stop();
+            m_Timer.Dispose();
+        }
+
         public bool DoFilter(Direction d)
         {
             bool res = false;
-            SkipExpired(m_MoveRecords);
+            if (m_Started)
+            {
+                
+                SkipExpired(m_MoveRecords);
 
-            
-            res = checkFastWalk();
 
-            TimeSpan delay = ComputeMovementSpeed(d);
+                res = checkFastWalk();
 
-            DateTime end;
+                TimeSpan delay = ComputeMovementSpeed(d);
 
-            if (m_MoveRecords.Count > 0)
-                end = m_EndQueue + delay;
-            else
-                end = DateTime.Now + delay;
-            m_EndQueue = end;
+                DateTime end;
 
-            m_MoveRecords.Enqueue(MovementRecord.NewInstance(end));
-  
+                if (m_MoveRecords.Count > 0)
+                    end = m_EndQueue + delay;
+                else
+                    end = DateTime.Now + delay;
+                m_EndQueue = end;
+
+                m_MoveRecords.Enqueue(MovementRecord.NewInstance(end));
+
+            }
             return res;
         }
 

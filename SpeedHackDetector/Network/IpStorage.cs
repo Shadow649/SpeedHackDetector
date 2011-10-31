@@ -50,6 +50,13 @@ namespace SpeedHackDetector.Network
             accounts.Add(username);
             this.m_Ip2Account.TryAdd(addr, accounts);
         }
+        
+        public void remove(IPAddress addr)
+        {
+            List<String> accounts = new List<String>();
+            this.m_Ip2Account.TryRemove(addr, out accounts);
+        }
+
 
         public void Warning(List<String> usernames, IPAddress addr)
         {

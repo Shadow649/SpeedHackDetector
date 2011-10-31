@@ -14,5 +14,7 @@ namespace SpeedHackDetector.Filter
         void Reset();
 
         int Sequence { get; set; }
+
+        void start();
     }
 }
